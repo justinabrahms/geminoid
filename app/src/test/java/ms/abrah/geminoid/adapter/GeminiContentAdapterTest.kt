@@ -44,16 +44,21 @@ class GeminiContentAdapterTest {
     }
 
     @Test
-    fun content_link() {
+    fun content_linkWithDescription() {
         val c = "=> works with text"
         assertEquals(geminiContentToHtml(c), preambleWrap("<p><a href=\"works\">with text</a></p>"))
+    }
+
+    @Test
+    fun content_linkBare() {
+        val c = "=> works"
+        assertEquals(geminiContentToHtml(c), preambleWrap("<p><a href=\"works\">works</a></p>"))
     }
 
     @Test
     fun content_list() {
         val c = "* works"
         assertEquals(geminiContentToHtml(c), preambleWrap("<ul><li>works</li></ul>"))
-
     }
 
     @Test

@@ -13,7 +13,12 @@ fun geminiContentToHtml(content: String): String {
             hasStartedP = endParagraphIfNeeded(hasStartedP, sb)
             val result = it.split(' ')
             val url = result.subList(1, 2).first()
-            val text = result.subList(2, result.size).joinToString(" ")
+            var text: String;
+            if (result.size == 2) {
+                text = url
+            } else {
+                text = result.subList(2, result.size).joinToString(" ")
+            }
             sb.append("<p><a href=\"${url}\">${text}</a></p>")
             return@forEach
         }
