@@ -1,5 +1,9 @@
 package ms.abrah.geminoid.adapter
 
+import kotlin.math.min
+
+val HEADING_LEVEL_REGEX = Regex("^(#+)")
+
 // This assumes the response's first line isn't passed in.
 fun geminiContentToHtml(content: String): String {
     val sb = StringBuilder()
@@ -42,14 +46,19 @@ fun geminiContentToHtml(content: String): String {
                 // If we're continuing a paragraph, join them with a space
                 sb.append(" ${it}")
             }
-
+            return@forEach
         }
+
         if (isHeading(it)) {
             hasStartedUl = endUlIfNeeded(hasStartedUl, sb)
             hasStartedP = endParagraphIfNeeded(hasStartedP, sb)
-            sb.append("<h1>${it.trimStart('#').trim()}</h1>")
+            val matches = HEADING_LEVEL_REGEX.find(it)
+            val headingLevel = min(6, matches!!.groupValues.first().length)
+            sb.append("<h${headingLevel}>${it.trimStart('#').trim()}</h${headingLevel}>")
+            return@forEach
         }
     }
+
     hasStartedUl = endUlIfNeeded(hasStartedUl, sb)
     hasStartedP = endParagraphIfNeeded(hasStartedP, sb)
     sb.append("</body></html>")

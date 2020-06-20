@@ -26,6 +26,18 @@ class GeminiContentAdapterTest {
     }
 
     @Test
+    fun content_textSingleHeading6() {
+        val c = "###### this is text"
+        assertEquals(geminiContentToHtml(c), preambleWrap("<h6>this is text</h6>"))
+    }
+
+    @Test
+    fun content_textSingleHeading6_evenIf7() {
+        val c = "####### this is text"
+        assertEquals(geminiContentToHtml(c), preambleWrap("<h6>this is text</h6>"))
+    }
+
+    @Test
     fun content_headingAndText() {
         val c = "# heading\nand then some text"
         assertEquals(geminiContentToHtml(c), preambleWrap("<h1>heading</h1><p>and then some text</p>"))
@@ -63,6 +75,7 @@ class GeminiContentAdapterTest {
 
     @Test
     fun content_multiList() {
-
+        val c = "* works\n* too"
+        assertEquals(geminiContentToHtml(c), preambleWrap("<ul><li>works</li><li>too</li></ul>"))
     }
 }
