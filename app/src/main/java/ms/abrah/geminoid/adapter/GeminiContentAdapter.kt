@@ -10,9 +10,12 @@ fun geminiContentToHtml(content: String): String {
     sb.append("<html><body>")
     var hasStartedUl = false
     var hasStartedP = false
+    var hasStartedQuote = false
+    var hasStartedPre = false
 
     content.lines().forEach {
         if (isLink(it)) {
+            hasStartedQuote = endQuoteIfNeeded(hasStartedQuote, sb)
             hasStartedUl = endUlIfNeeded(hasStartedUl, sb)
             hasStartedP = endParagraphIfNeeded(hasStartedP, sb)
             val result = it.split(' ')
@@ -27,7 +30,21 @@ fun geminiContentToHtml(content: String): String {
             return@forEach
         }
 
+        if (isBlockQuote(it)) {
+            hasStartedP = endParagraphIfNeeded(hasStartedP, sb)
+            hasStartedUl = endUlIfNeeded(hasStartedUl, sb)
+            if (hasStartedQuote) {
+                sb.append("\n")
+            } else {
+                hasStartedQuote = true
+                sb.append("<blockquote>")
+            }
+            sb.append(it.trimStart('>').trim())
+            return@forEach
+        }
+
         if (isListItem(it)) {
+            hasStartedQuote = endQuoteIfNeeded(hasStartedQuote, sb)
             if (!hasStartedUl) {
                 hasStartedUl = true
                 sb.append("<ul>")
@@ -37,6 +54,7 @@ fun geminiContentToHtml(content: String): String {
         }
 
         if (isParagraphText(it)) {
+            hasStartedQuote = endQuoteIfNeeded(hasStartedQuote, sb)
             hasStartedUl = endUlIfNeeded(hasStartedUl, sb)
             if (!hasStartedP) {
                 hasStartedP = true
@@ -50,6 +68,7 @@ fun geminiContentToHtml(content: String): String {
         }
 
         if (isHeading(it)) {
+            hasStartedQuote = endQuoteIfNeeded(hasStartedQuote, sb)
             hasStartedUl = endUlIfNeeded(hasStartedUl, sb)
             hasStartedP = endParagraphIfNeeded(hasStartedP, sb)
             val matches = HEADING_LEVEL_REGEX.find(it)
@@ -58,7 +77,7 @@ fun geminiContentToHtml(content: String): String {
             return@forEach
         }
     }
-
+    hasStartedQuote = endQuoteIfNeeded(hasStartedQuote, sb)
     hasStartedUl = endUlIfNeeded(hasStartedUl, sb)
     hasStartedP = endParagraphIfNeeded(hasStartedP, sb)
     sb.append("</body></html>")
@@ -75,6 +94,15 @@ fun endParagraphIfNeeded(hasStartedP: Boolean, sb: StringBuilder): Boolean {
 fun endUlIfNeeded(hasStartedUl: Boolean, sb: StringBuilder): Boolean {
     if (hasStartedUl) sb.append("</ul>")
     return false
+}
+
+fun endQuoteIfNeeded(hasStartedQuote: Boolean, sb: StringBuilder): Boolean {
+    if (hasStartedQuote) sb.append("</blockquote>")
+    return false
+}
+
+fun isBlockQuote(it: String): Boolean {
+    return it.length != 0 && it.startsWith(">")
 }
 
 fun isListItem(it: String): Boolean {

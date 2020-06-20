@@ -78,4 +78,17 @@ class GeminiContentAdapterTest {
         val c = "* works\n* too"
         assertEquals(geminiContentToHtml(c), preambleWrap("<ul><li>works</li><li>too</li></ul>"))
     }
+
+    @Test
+    fun content_quoteSimple() {
+        val c = "> works"
+        assertEquals(geminiContentToHtml(c), preambleWrap("<blockquote>works</blockquote>"))
+    }
+
+    @Test
+    fun content_quoteComplex() {
+        val c = "text\n> works\n>test\nfoo"
+        assertEquals(geminiContentToHtml(c), preambleWrap("<p>text</p><blockquote>works\ntest</blockquote><p>foo</p>"))
+    }
+
 }
