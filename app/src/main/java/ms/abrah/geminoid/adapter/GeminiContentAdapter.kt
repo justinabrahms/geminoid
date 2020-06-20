@@ -17,7 +17,7 @@ fun geminiContentToHtml(content: String): String {
             hasStartedP = endParagraphIfNeeded(hasStartedP, sb)
             val result = it.split(' ')
             val url = result.subList(1, 2).first()
-            var text: String;
+            val text: String;
             if (result.size == 2) {
                 text = url
             } else {
