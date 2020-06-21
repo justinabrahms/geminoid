@@ -91,4 +91,21 @@ class GeminiContentAdapterTest {
         assertEquals(geminiContentToHtml(c), preambleWrap("<p>text</p><blockquote>works\ntest</blockquote><p>foo</p>"))
     }
 
+    @Test
+    fun content_pre() {
+        val c = "```\ntest\nfoo\n```"
+        assertEquals(preambleWrap("<pre>test\nfoo</pre>"), geminiContentToHtml(c))
+    }
+
+    @Test
+    fun content_preWithMarkupInIt() {
+        val c= "```\n* test\n> foo\nbar\n```"
+        assertEquals(preambleWrap("<pre>* test\n> foo\nbar</pre>"), geminiContentToHtml(c))
+    }
+
+    @Test
+    fun content_twoPreTags() {
+        val c = "```\nfoo\n```\n```\nbar\n```"
+        assertEquals(preambleWrap("<pre>foo</pre><pre>bar</pre>"), geminiContentToHtml(c))
+    }
 }

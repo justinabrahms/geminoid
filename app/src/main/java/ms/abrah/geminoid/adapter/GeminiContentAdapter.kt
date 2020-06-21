@@ -12,8 +12,34 @@ fun geminiContentToHtml(content: String): String {
     var hasStartedP = false
     var hasStartedQuote = false
     var hasStartedPre = false
+    var isPreFirstTime = true
 
     content.lines().forEach {
+        if (isPreMarker(it)) {
+            var tagPrefix = ""
+            if (hasStartedPre) {
+                // this is now an ending tag
+                tagPrefix = "/"
+                // reset first time marker for a subsequet pre tag
+                isPreFirstTime = true
+            }
+            hasStartedPre = !hasStartedPre
+            isPreFirstTime = true
+            sb.append("<${tagPrefix}pre>")
+            return@forEach
+        }
+
+        if (hasStartedPre) {
+            // pre trumps all other things.
+            var preContentPrefix = "\n"
+            if (isPreFirstTime) {
+                preContentPrefix = ""
+                isPreFirstTime = false
+            }
+            sb.append("${preContentPrefix}${it}")
+            return@forEach
+        }
+
         if (isLink(it)) {
             hasStartedQuote = endQuoteIfNeeded(hasStartedQuote, sb)
             hasStartedUl = endUlIfNeeded(hasStartedUl, sb)
@@ -82,6 +108,10 @@ fun geminiContentToHtml(content: String): String {
     hasStartedP = endParagraphIfNeeded(hasStartedP, sb)
     sb.append("</body></html>")
     return sb.toString()
+}
+
+fun isPreMarker(it: String): Boolean {
+    return it.startsWith("```")
 }
 
 fun endParagraphIfNeeded(hasStartedP: Boolean, sb: StringBuilder): Boolean {
