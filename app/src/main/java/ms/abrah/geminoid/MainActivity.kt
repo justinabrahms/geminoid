@@ -1,11 +1,13 @@
 package ms.abrah.geminoid
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Base64
 import android.util.Log
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
@@ -17,7 +19,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         val webview = this.findViewById<WebView>(R.id.webView)
-        webview.webViewClient = GeminiWebViewClient()
+        webview.webViewClient = GeminiWebViewClient(this)
 
 
         webview.loadData(
@@ -43,7 +45,18 @@ fun base64Encode(s: String): String {
     return Base64.encodeToString(s.toByteArray(), Base64.NO_PADDING)
 }
 
-class GeminiWebViewClient : WebViewClient() {
+class GeminiWebViewClient(activityContext: Context) : WebViewClient() {
+    val activityContext = activityContext
+
+    override fun onReceivedError(
+        view: WebView?,
+        errorCode: Int,
+        description: String?,
+        failingUrl: String?
+    ) {
+        Toast.makeText(activityContext, description , Toast.LENGTH_LONG).show()
+        super.onReceivedError(view, errorCode, description, failingUrl)
+    }
 
     override fun shouldOverrideUrlLoading(
         view: WebView?,
@@ -58,11 +71,31 @@ class GeminiWebViewClient : WebViewClient() {
             loadUrl(request.url)
         }
         runBlocking {
-            val data = job.await()
-            Log.d("debug", "Here's the data from the join: ${data}")
+            val response = job.await()
+            Log.d("debug", "Here's the data from the join: ${response}")
+
+            if (response.error) {
+                Log.d("error","The error we recieved was: ${response.errorDescription}")
+                onReceivedError(view, ERROR_UNKNOWN, response.errorDescription, null)
+                // generate toast
+                return@runBlocking
+            }
+
+            response.body!!
+            response.mimeType!!
+
+            if (response.mimeType.startsWith("text/gemini")) {
+                view?.loadData(
+                    base64Encode(geminiContentToHtml(response.body)),
+                    "text/html",
+                    "base64"
+                )
+                return@runBlocking
+            }
+
             view?.loadData(
-                base64Encode(geminiContentToHtml(data)),
-                "text/html",
+                base64Encode(response.body),
+                response.mimeType,
                 "base64"
             )
         }
