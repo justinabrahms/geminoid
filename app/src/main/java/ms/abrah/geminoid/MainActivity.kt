@@ -7,6 +7,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
 import ms.abrah.geminoid.adapter.geminiContentToHtml
 import ms.abrah.geminoid.client.loadUrl
@@ -18,6 +19,7 @@ class MainActivity : AppCompatActivity() {
         val webview = this.findViewById<WebView>(R.id.webView)
         webview.webViewClient = GeminiWebViewClient()
 
+
         webview.loadData(
             base64Encode(
                 "<html><body>" +
@@ -27,6 +29,14 @@ class MainActivity : AppCompatActivity() {
             "text/html",
             "base64")
     }
+
+    override fun onBackPressed() {
+        if (this.webView.canGoBack()) {
+            this.webView.goBack()
+        } else {
+            super.onBackPressed()
+        }
+    }
 }
 
 fun base64Encode(s: String): String {
@@ -34,6 +44,7 @@ fun base64Encode(s: String): String {
 }
 
 class GeminiWebViewClient : WebViewClient() {
+
     override fun shouldOverrideUrlLoading(
         view: WebView?,
         request: WebResourceRequest?
